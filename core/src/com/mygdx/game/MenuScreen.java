@@ -40,7 +40,7 @@ public class MenuScreen extends ScreenBeta {
         uiTable.background(skin.getDrawable("window-c"));
 
 
-        menuMusic.setVolume(1.0f);
+        menuMusic.setVolume(0.0f);
         menuMusic.play();
 
         logo = new LogoDBZ();
@@ -102,7 +102,7 @@ public class MenuScreen extends ScreenBeta {
                 selectionSfx.play();
                 menuMusic.stop();
 
-                if(MyGame.dialogScreen == null) {
+  /*              if(MyGame.dialogScreen == null) {
                     MyGame.dialogScreen = new DialogScreen();
                     MyGame.setActiveScreen(MyGame.dialogScreen);
                 }
@@ -110,17 +110,17 @@ public class MenuScreen extends ScreenBeta {
                     MyGame.gameScreen = new GameScreen();
                     MyGame.setActiveScreen(MyGame.gameScreen);
                 }
-
-                /*if(MyGame.gameScreen == null) {
+*/
+                if(MyGame.gameScreen == null) {
                     MyGame.gameScreen = new GameScreen();
                     MyGame.setActiveScreen(MyGame.gameScreen);
-                }*/
-                //else{
-                    //MyGame.dialogScreen.initialize();
-                    //MyGame.setActiveScreen(MyGame.dialogScreen);
-                    /*MyGame.gameScreen.initialize();
-                    MyGame.setActiveScreen(MyGame.gameScreen);*/
-                //}
+                }
+                else{
+                    MyGame.dialogScreen.initialize();
+                    MyGame.setActiveScreen(MyGame.dialogScreen);
+                    MyGame.gameScreen.initialize();
+                    MyGame.setActiveScreen(MyGame.gameScreen);
+                }
             }
         });
     }

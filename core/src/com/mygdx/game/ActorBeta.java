@@ -19,6 +19,9 @@ import com.badlogic.gdx.math.Intersector;
 import com.badlogic.gdx.math.Intersector.MinimumTranslationVector;
 import com.badlogic.gdx.utils.viewport.Viewport;
 
+import java.util.HashMap;
+import java.util.Set;
+
 /**
  *  Extend the Actor class to include graphics and collision detection.
  *  Actor class stores data such as position and rotation.
@@ -85,8 +88,6 @@ public class ActorBeta extends Actor {
         deceleration = 0;
 
         boundaryPolygon = null;
-
-
     }
 
     public void setTexture(Texture t) {
@@ -242,6 +243,7 @@ public class ActorBeta extends Actor {
         //return anim object from first animation method that will load a single image
         return loadAnimationFromFiles(fileNames, 1, true);
     }
+
 
     /* Check to see if animation is finished */
 
@@ -424,8 +426,7 @@ public class ActorBeta extends Actor {
 
         return Intersector.overlapConvexPolygons(poly1, poly2);
     }
-
-    /**
+       /**
      *  //Stop actor from overlapping another Actor
      * @param width
      * @param height
@@ -505,5 +506,8 @@ public class ActorBeta extends Actor {
             setY(worldBounds.height - getHeight());
     }
 
+    public Vector2 getPosition() {
+        return new Vector2(getX(),getY());
+    }
 
 }

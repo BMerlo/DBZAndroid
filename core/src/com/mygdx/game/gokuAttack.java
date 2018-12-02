@@ -11,13 +11,16 @@ public class gokuAttack extends ActorBeta {
         //setTexture(ballText);
 
         this.setBoundaryRectangle();
-        moveBy(20,0);
+
+        //moveBy(20,0);
 
     }
 
     @Override
     public void act(float dt) {
         super.act(dt);
+        /*if (this.overlaps(Vegeta))
+            remove = true;*/
     }
 
 }

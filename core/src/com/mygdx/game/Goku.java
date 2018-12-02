@@ -14,9 +14,6 @@ public class Goku extends Fighter{
     float coolDownAttack;
 
     Goku() {
-
-        float coolDownAttack = 1;
-
         String[] idleString = {
                 "sprites/goku/4.png", "sprites/goku/5.png", "sprites/goku/6.png", "sprites/goku/7.png"};
 
@@ -24,13 +21,15 @@ public class Goku extends Fighter{
 
         String[] attack1String = {"sprites/goku/attack10.png", "sprites/goku/attack11.png", "sprites/goku/attack12.png", "sprites/goku/attack13.png"};
 
-        String[] attack2String = {"sprites/goku/attack20.png", "sprites/goku/attack21.png", "sprites/goku/attack22.png", "sprites/goku/attack23.png",
-                "sprites/goku/attack24.png", "sprites/goku/attack25.png"};
+        String[] attack2String = {"sprites/goku/attack20.png", "sprites/goku/attack21.png", "sprites/goku/attack22.png", "sprites/goku/attack25.png"};
+
+        //"sprites/goku/attack23.png",
+        //                "sprites/goku/attack24.png"
 
         idle = loadAnimationFromFiles(idleString, 0.5f, true);
         walk = loadAnimationFromFiles(moveString, 0.5f, false);
-        attack1 = loadAnimationFromFiles(attack1String, 0.2f, false);
-        attack2 = loadAnimationFromFiles(attack2String, 0.2f, false);
+        attack1 = loadAnimationFromFiles(attack1String, 0.1f, false);
+        attack2 = loadAnimationFromFiles(attack2String, 0.1f, false);
 
         this.setBoundaryRectangle();
 
@@ -54,11 +53,11 @@ public class Goku extends Fighter{
                 break;
 
             case PUNCH:
-                this.setAnimation(attack2);
+                this.setAnimation(attack1);
                 break;
 
             case ATTACK:
-                this.setAnimation(attack1);
+                this.setAnimation(attack2);
                 break;
 
             case WALK:
@@ -66,7 +65,7 @@ public class Goku extends Fighter{
                 break;
 
             default:
-                Gdx.app.log("States", "Goku changing states");
+                Gdx.app.log("States", "Goku default state");
                 break;
         }
     }

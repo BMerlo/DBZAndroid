@@ -37,7 +37,7 @@ public class DialogScreen extends ScreenBeta {
         dialogueMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/music/dialogue.mp3"));
         dialogueMusic.setLooping(true);
 
-        dialogueMusic.setVolume(0.5f);
+        dialogueMusic.setVolume(0.0f);
         dialogueMusic.play();
 
         timeCountTo = 0;
@@ -140,9 +140,9 @@ public class DialogScreen extends ScreenBeta {
 
         timeCountTo += dt;
 
-        if(timeCountTo >1) {
+        if(timeCountTo >0.5) {
             vegeta1d.play();
-            timeCountTo = -1000;
+            timeCountTo = -10000;
         }
 
 
