@@ -1,8 +1,5 @@
 package com.mygdx.game;
 
-/**
- * Created by markapptist on 2018-11-16.
- */
 
 public class StoryScreen extends ScreenBeta {
 

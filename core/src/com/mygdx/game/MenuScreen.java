@@ -29,6 +29,7 @@ public class MenuScreen extends ScreenBeta {
     /**PARTICLE EFFECTS**/
     FireParticle fire;
     LogoDBZ logo;
+    ActorBeta background;
 
 
     @Override
@@ -39,8 +40,12 @@ public class MenuScreen extends ScreenBeta {
 
         uiTable.background(skin.getDrawable("window-c"));
 
+        background = new ActorBeta(0, 0, mainStage);
+        background.loadTexture("sprites/backgrounds/screenMenu.jpg");
+        background.setSize(WIDTH, HEIGHT);
+        mainStage.addActor(background);
 
-        menuMusic.setVolume(0.0f);
+        menuMusic.setVolume(0.5f);
         menuMusic.play();
 
         logo = new LogoDBZ();
@@ -102,15 +107,15 @@ public class MenuScreen extends ScreenBeta {
                 selectionSfx.play();
                 menuMusic.stop();
 
-  /*              if(MyGame.dialogScreen == null) {
+                if(MyGame.dialogScreen == null) {
                     MyGame.dialogScreen = new DialogScreen();
                     MyGame.setActiveScreen(MyGame.dialogScreen);
                 }
-                else if(MyGame.dialogScreen != null) {
+                else if(MyGame.dialogScreen != null) { //so the dialogue screen will only show once
                     MyGame.gameScreen = new GameScreen();
                     MyGame.setActiveScreen(MyGame.gameScreen);
                 }
-*/
+/* comment this out so this in case to debug faster later
                 if(MyGame.gameScreen == null) {
                     MyGame.gameScreen = new GameScreen();
                     MyGame.setActiveScreen(MyGame.gameScreen);
@@ -120,7 +125,7 @@ public class MenuScreen extends ScreenBeta {
                     MyGame.setActiveScreen(MyGame.dialogScreen);
                     MyGame.gameScreen.initialize();
                     MyGame.setActiveScreen(MyGame.gameScreen);
-                }
+                }*/
             }
         });
     }

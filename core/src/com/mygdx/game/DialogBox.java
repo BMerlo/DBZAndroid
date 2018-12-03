@@ -10,9 +10,6 @@ import com.badlogic.gdx.utils.Align;
 
 import java.awt.TextField;
 
-/**
- * Created by markapptist on 2018-11-15.
- */
 
 public class DialogBox extends ActorBeta {
 

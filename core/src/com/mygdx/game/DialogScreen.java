@@ -37,7 +37,7 @@ public class DialogScreen extends ScreenBeta {
         dialogueMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/music/dialogue.mp3"));
         dialogueMusic.setLooping(true);
 
-        dialogueMusic.setVolume(0.0f);
+        dialogueMusic.setVolume(0.5f);
         dialogueMusic.play();
 
         timeCountTo = 0;
@@ -127,6 +127,7 @@ public class DialogScreen extends ScreenBeta {
                     dialogueMusic.stop();
                     MyGame.gameScreen = new GameScreen();
                     MyGame.setActiveScreen(MyGame.gameScreen);
+                    MyGame.dialogScreen.dispose();
                 }
             }
         });
@@ -140,19 +141,26 @@ public class DialogScreen extends ScreenBeta {
 
         timeCountTo += dt;
 
-        if(timeCountTo >0.5) {
+        if(timeCountTo >0.2) {
             vegeta1d.play();
             timeCountTo = -10000;
         }
 
+    }
 
-        if(touchpad.getKnobPercentX() > 0.5 && touchpad.getKnobPercentX() < 0.9) {
-            Gdx.app.log("Delta X", "Knob X is " + touchpad.getKnobPercentX());
-        }
+    @Override
+    public void dispose() {
+        super.dispose();
 
-        if(touchpad.getKnobPercentY() > 0.5 && touchpad.getKnobPercentY() < 0.9) {
-            Gdx.app.log("Delta Y", "Knob Y is " + touchpad.getKnobPercentX());
-        }
+        //MyGame.dialogScreen = null;
 
+        uiTable = null;
+        dialogueMusic = null;
+        foreground = null;
+        foreground1 = null;
+        foreground2 = null;
+        vegeta1d= null;
+        vegeta2d = null;
+        goku1d = null;
     }
 }

@@ -9,6 +9,7 @@ public class Fighter extends ActorBeta {
     Animation<TextureRegion> walk;
     Animation<TextureRegion> attack1;
     Animation<TextureRegion> attack2;
+    Animation<TextureRegion> block;
 
     Fighter() {
 

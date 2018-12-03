@@ -1,25 +1,40 @@
 package com.mygdx.game;
 
 import com.badlogic.gdx.Gdx;
+import com.badlogic.gdx.audio.Sound;
 import com.badlogic.gdx.graphics.Texture;
 
 public class Goku extends Fighter{
 
     public enum States {
-            IDLE, ATTACK, PUNCH, WALK
+            IDLE, ATTACK, PUNCH, WALK, DMGED, BLOCK
     }
+
+    Sound Damaged;
 
     States states;
 
+    boolean playOnce;
+    boolean playOnceAttack;
+
+    float coolDownDmg;
     float coolDownAttack;
 
+    float health;
+
     Goku() {
+
+        playOnce = false;
+        coolDownDmg = 0;
+        coolDownAttack = 3;
+
+        health = 1.0f;
         String[] idleString = {
                 "sprites/goku/4.png", "sprites/goku/5.png", "sprites/goku/6.png", "sprites/goku/7.png"};
 
         String[] moveString = {"sprites/goku/walk0.png", "sprites/goku/walk1.png"};
 
-        String[] attack1String = {"sprites/goku/attack10.png", "sprites/goku/attack11.png", "sprites/goku/attack12.png", "sprites/goku/attack13.png"};
+        String[] attack1String = {"sprites/goku/attack10.png", "sprites/goku/attack11.png", "sprites/goku/attack12.png", "sprites/goku/attack13.png"};//punch
 
         String[] attack2String = {"sprites/goku/attack20.png", "sprites/goku/attack21.png", "sprites/goku/attack22.png", "sprites/goku/attack25.png"};
 
@@ -32,6 +47,8 @@ public class Goku extends Fighter{
         attack2 = loadAnimationFromFiles(attack2String, 0.1f, false);
 
         this.setBoundaryRectangle();
+
+        Damaged = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/gokuAh.mp3"));
 
         setScale(2.0f);
 
@@ -53,15 +70,37 @@ public class Goku extends Fighter{
                 break;
 
             case PUNCH:
-                this.setAnimation(attack1);
+                if(playOnceAttack) {
+                    coolDownAttack = 0;
+                    this.setAnimation(attack1);
+                }
                 break;
 
             case ATTACK:
-                this.setAnimation(attack2);
+                if(playOnceAttack) {
+                    //moveBy(0,0);
+                    coolDownAttack = 0;
+                    this.setAnimation(attack2);
+                }
+
                 break;
 
             case WALK:
                 this.setAnimation(walk);
+                break;
+
+            case DMGED:
+                if(playOnce) {
+                    Damaged.play();
+                    moveBy(-2,0);
+                    health = health - 0.19f;
+                    coolDownDmg = 0;
+                }
+                this.states = Goku.States.IDLE;
+                break;
+
+            case BLOCK:
+
                 break;
 
             default:

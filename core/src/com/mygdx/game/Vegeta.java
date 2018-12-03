@@ -10,7 +10,7 @@ import com.badlogic.gdx.scenes.scene2d.actions.SequenceAction;
 
 public class Vegeta extends Fighter {
     public enum States {
-        IDLE, ATTACK, PUNCH, WALK, DMGED
+        IDLE, ATTACK, PUNCH, WALK, DMGED, BLOCK
     }
 
     Sound Damaged;
@@ -18,24 +18,27 @@ public class Vegeta extends Fighter {
     States states;
 
     boolean playOnce;
+    boolean playOnceAttack;
+    boolean attackable;
 
     float coolDownDmg;
+    float coolDownAttack;
 
-    ActorBeta attackBall;
-
-    Goku goku;
-
-    Stage game;
-    //ScreenBeta game;
+    float health;
 
     Vegeta() {
         playOnce = false;
         coolDownDmg = 0;
+        coolDownAttack = 0;
+        health = 1.0f;
+        attackable = true;
 
         String[] idleString = {"sprites/vegeta/2.png", "sprites/vegeta/3.png",
                 "sprites/vegeta/4.png", "sprites/vegeta/5.png"};
 
         String[] moveString = {"sprites/vegeta/walk0.png", "sprites/vegeta/walk1.png"};
+
+        String[] blockString = {"sprites/vegeta/vegetaBlock0.png", "sprites/vegeta/vegetaBlock1.png", "sprites/vegeta/vegetaBlock2.png"};
 
         String[] punchString = {"sprites/vegeta/attack0.png", "sprites/vegeta/attack1.png",
                 "sprites/vegeta/attack2.png", "sprites/vegeta/attack3.png",
@@ -45,10 +48,11 @@ public class Vegeta extends Fighter {
                 "sprites/vegeta/attack23.png", "sprites/vegeta/attack24.png", "sprites/vegeta/attack25.png",
                 "sprites/vegeta/attack26.png", "sprites/vegeta/attack27.png"};
 
-        idle = loadAnimationFromFiles(idleString, 0.5f, true);
+        idle = loadAnimationFromFiles(idleString, 0.4f, true);
         walk = loadAnimationFromFiles(moveString, 0.5f, false);
-        attack1 = loadAnimationFromFiles(punchString, 0.2f, true); //punch
-        attack2 = loadAnimationFromFiles(attack2String, 0.2f, true); //blast
+        attack1 = loadAnimationFromFiles(punchString, 0.2f, false); //punch
+        attack2 = loadAnimationFromFiles(attack2String, 0.2f, false); //blast
+        block = loadAnimationFromFiles(blockString, 0.5f, false);
 
         this.setBoundaryRectangle();
 
@@ -69,30 +73,49 @@ public class Vegeta extends Fighter {
 
         switch (states) {
             case IDLE:
-                this.setAnimation(attack2);
+                attackable = true;
+                this.setAnimation(idle);
                 break;
 
             case ATTACK:
-                this.setAnimation(attack2);
-                //this.setAnimation(attack2);
+                attackable = true;
+                if(playOnceAttack) {
+                    moveBy(5,0);
+                    this.setAnimation(attack2);
+                    coolDownAttack = 0;
+                }
                 break;
 
             case PUNCH:
+                attackable = true;
                 this.setAnimation(attack1);
-                //this.setAnimation(attack1);
                 break;
 
             case WALK:
+                attackable = true;
                 this.setAnimation(walk);
                 break;
 
             case DMGED:
-                if(playOnce) {
+                if(!attackable){
+                    this.states = Vegeta.States.BLOCK;
+                }
+                else if(attackable && playOnce) {
                     Damaged.play();
                     moveBy(2,0);
+                    health = health - 0.21f;
                     coolDownDmg = 0;
+                    this.states = Vegeta.States.IDLE;
                 }
-                this.states = Vegeta.States.IDLE;
+                else{
+                    this.states = Vegeta.States.IDLE;
+                }
+                break;
+
+            case BLOCK:
+                attackable = false;
+                this.setAnimation(block);
+
                 break;
 
             default:

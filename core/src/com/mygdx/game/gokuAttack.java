@@ -1,7 +1,5 @@
 package com.mygdx.game;
 
-import com.badlogic.gdx.graphics.Texture;
-
 public class gokuAttack extends ActorBeta {
 
     public gokuAttack(){

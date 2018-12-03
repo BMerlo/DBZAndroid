@@ -10,6 +10,7 @@ import com.badlogic.gdx.graphics.g2d.BitmapFont;
 import com.badlogic.gdx.math.MathUtils;
 import com.badlogic.gdx.scenes.scene2d.Actor;
 import com.badlogic.gdx.scenes.scene2d.InputEvent;
+import com.badlogic.gdx.scenes.scene2d.actions.MoveByAction;
 import com.badlogic.gdx.scenes.scene2d.ui.Button;
 import com.badlogic.gdx.scenes.scene2d.ui.Label;
 import com.badlogic.gdx.scenes.scene2d.ui.Skin;
@@ -21,10 +22,9 @@ import com.badlogic.gdx.utils.Align;
 
 import java.awt.Menu;
 import java.util.ArrayList;
+import java.util.Timer;
+import java.util.TimerTask;
 
-/**
- * Created by markapptist on 2018-11-12.
- */
 
 public class GameScreen extends ScreenBeta {
 
@@ -33,10 +33,9 @@ public class GameScreen extends ScreenBeta {
     Goku goku;
 
     Sound attack1;
+    Sound clash;
     Sound vegetaLost;
     Sound gokuLost;
-    Sound vegetaDmg;
-    Sound gokuDmg;
 
     Touchpad touchpad;
 
@@ -60,9 +59,6 @@ public class GameScreen extends ScreenBeta {
     private Label countdownLabel;
     private Label winnerLabel;
 
-
-    boolean firstBool;
-
     float vegetaHealth;//0 = dead, 1 = full health
     float gokuHealth;//0 = dead, 1 = full health
 
@@ -74,6 +70,10 @@ public class GameScreen extends ScreenBeta {
     ArrayList<vegetaAttack> vegetaAttacks;
     int iArray;
     int vArray;
+
+    MoveByAction moveByAction1;
+
+    float AItimer;
 
     @Override
     public void initialize() {
@@ -87,11 +87,12 @@ public class GameScreen extends ScreenBeta {
         worldTimer = 180;
         timeCount = 0;
         timeUp = false;
+        playOnce = true;
+        AItimer = 2;
 
-
-        playOnce= true;
-
-
+        MoveByAction moveByAction1 = new MoveByAction();
+        moveByAction1.setDuration(2);
+        moveByAction1.setAmountY(2.0f);
 
         countdownLabel = new Label("LABEL", labelStyle);
         countdownLabel.setPosition(WIDTH/2-50,HEIGHT-120);
@@ -128,14 +129,13 @@ public class GameScreen extends ScreenBeta {
 
         fightMusic = Gdx.audio.newMusic(Gdx.files.internal("audio/music/fight.mp3"));
         fightMusic.setLooping(true);
-        fightMusic.setVolume(0.0f);
+        fightMusic.setVolume(0.5f);
         fightMusic.play();
 
         attack1 = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/attack.wav"));
         vegetaLost = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/vegetaDies.mp3"));
         gokuLost = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/gokuDies.mp3"));
-        vegetaDmg = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/vegetaAh.mp3"));
-        gokuDmg = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/gokuAh.mp3"));
+        clash = Gdx.audio.newSound(Gdx.files.internal("audio/sounds/clash.wav"));
 
         ///
 
@@ -163,9 +163,9 @@ public class GameScreen extends ScreenBeta {
         touchpad.setResetOnTouchUp(true);
         touchpad.getColor().a = 1.0f;
 
-        if(!firstBool) {
-            uiTable.add(touchpad).width(touchpad.getWidth() * 1.5f).height(touchpad.getHeight() * 1.5f).padRight(800).padTop(600);
-        }
+
+        uiTable.add(touchpad).width(touchpad.getWidth() * 1.5f).height(touchpad.getHeight() * 1.5f).padRight(800).padTop(600);
+
 
         Button aButton = new Button(uiSkin, "red");
         Button bButton = new Button(uiSkin, "blue");
@@ -173,11 +173,8 @@ public class GameScreen extends ScreenBeta {
         bButton.getColor().a = 1.0f;
 
 
-            uiTable.padRight(50).add(aButton).width(aButton.getWidth() * 2.0f).height(aButton.getHeight() * 2.0f).bottom().padRight(120);
-            uiTable.add(bButton).width(bButton.getWidth() * 2.0f).height(bButton.getHeight() * 2.0f).bottom().padBottom(120);
-
-
-//        timerTable.add(timeLabel).expandX().padTop(10);
+        uiTable.padRight(50).add(aButton).width(aButton.getWidth() * 2.0f).height(aButton.getHeight() * 2.0f).bottom().padRight(120);
+        uiTable.add(bButton).width(bButton.getWidth() * 2.0f).height(bButton.getHeight() * 2.0f).bottom().padBottom(120);
 
         touchpad.addListener(new ChangeListener() {
             @Override
@@ -200,15 +197,15 @@ public class GameScreen extends ScreenBeta {
         aButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                goku.resetTime();
-                goku.states = Goku.States.PUNCH;
-                //if (vegeta.getPosition().dst(goku.getPosition()) < vegeta.getWidth() * 10) {
-                if(goku.getPosition().dst(vegeta.getPosition()) < goku.getWidth()*2.5){
-                    vegetaHealth = vegetaHealth -0.15f;
-                    goku.moveBy(-60,0);
-                    vegeta.states = Vegeta.States.DMGED;
+                if(goku.playOnceAttack) {
+                    goku.resetTime();
+                    goku.states = Goku.States.PUNCH;
+                    //if (vegeta.getPosition().dst(goku.getPosition()) < vegeta.getWidth() * 10) {
+                    if (goku.getPosition().dst(vegeta.getPosition()) < goku.getWidth() * 2.5) {
+                        goku.moveBy(-60, 0);
+                        vegeta.states = Vegeta.States.DMGED;
+                    }
                 }
-
             }
         });
 
@@ -217,15 +214,17 @@ public class GameScreen extends ScreenBeta {
         bButton.addListener(new ChangeListener() {
             @Override
             public void changed(ChangeEvent event, Actor actor) {
-                goku.resetTime();
-                goku.states = Goku.States.ATTACK;
+                if(goku.playOnceAttack) {
+                    goku.resetTime();
+                    goku.states = Goku.States.ATTACK;
 
-                gokuAttacks.add(new gokuAttack());
-                gokuAttacks.get(iArray).setPosition(goku.getX()+40,goku.getY()+10);
+                    gokuAttacks.add(new gokuAttack());
+                    gokuAttacks.get(iArray).setPosition(goku.getX() + 50, goku.getY() + 20);
 
-                mainStage.addActor(gokuAttacks.get(iArray));
-                iArray++;
-                attack1.play();
+                    mainStage.addActor(gokuAttacks.get(iArray));
+                    iArray++;
+                    attack1.play();
+                }
             }
         });
 
@@ -239,8 +238,6 @@ public class GameScreen extends ScreenBeta {
         goku.states = Goku.States.IDLE;
         mainStage.addActor(goku);
 
-        //vegeta
-        vegeta.goku = goku;
 
         //CREATE UI
         mainStage.addActor(gokuPort);
@@ -251,13 +248,15 @@ public class GameScreen extends ScreenBeta {
         mainStage.addActor(gokuHealthBar);
         mainStage.addActor(redBarVegeta);
         mainStage.addActor(vegetaHealthBar);
-        firstBool = true;
     }
 
     @Override
     public void update(float dt) {
         vegeta.act(dt);
         touchpad.act(dt);
+
+        vegetaHealth = vegeta.health;
+        gokuHealth = goku.health;
 
         gokuHealthBar.setScale(50*gokuHealth,4f);
         vegetaHealthBar.setScale(50*vegetaHealth,4f);
@@ -282,8 +281,13 @@ public class GameScreen extends ScreenBeta {
             }
         }
 
-        //MOVE ATTACKS
+        if(vegeta.states == Vegeta.States.PUNCH) {
+            if(vegeta.isAnimationFinished()) {
+                vegeta.states = Vegeta.States.IDLE;
+            }
+        }
 
+        //MOVE ATTACKS
         for (gokuAttack gokuAttack : gokuAttacks) {
             gokuAttack.moveBy(20,0);
         }
@@ -292,7 +296,28 @@ public class GameScreen extends ScreenBeta {
             vegetaAttack.moveBy(-20,0);
         }
 
+        //check collisions
+        for (gokuAttack gokuAttack : gokuAttacks) {
+            if (gokuAttack.overlaps(vegeta)) {
+                gokuAttack.remove();
+                vegeta.states = Vegeta.States.DMGED;
+            }
+        }
+
+        for (vegetaAttack vegetaAttack : vegetaAttacks) {
+            if (vegetaAttack.overlaps(goku)) {
+                vegetaAttack.remove();
+                goku.states = Goku.States.DMGED;
+            }
+        }
+
+        //CHECK COOLDOWNS
         vegeta.coolDownDmg = vegeta.coolDownDmg+dt;
+        vegeta.coolDownAttack = vegeta.coolDownAttack+dt;
+
+        goku.coolDownDmg =  goku.coolDownDmg +dt;
+        goku.coolDownAttack =  goku.coolDownAttack +dt;
+
 
         if(vegeta.coolDownDmg > 1){
             vegeta.playOnce = true;
@@ -301,27 +326,42 @@ public class GameScreen extends ScreenBeta {
             vegeta.playOnce = false;
         }
 
+        if(goku.coolDownDmg > 1){
+            goku.playOnce = true;
+        }
+        else{
+            goku.playOnce = false;
+        }
+
+        if(vegeta.coolDownAttack > 2){
+            vegeta.playOnceAttack = true;
+        }
+        else{
+            vegeta.playOnceAttack = false;
+        }
+
+        if(goku.coolDownAttack > 1.0f){
+            goku.playOnceAttack = true;
+        }
+        else{
+            goku.playOnceAttack = false;
+        }
+
+        //can't overlaps players
         goku.preventOverlap(vegeta);
+        vegeta.preventOverlap(goku);
 
-        //cehck collisions
-        for (gokuAttack gokuAttack : gokuAttacks) {
-            if (gokuAttack.overlaps(vegeta)) {
-                gokuAttack.remove();
-                vegetaHealth = vegetaHealth - 0.015f;
-                vegeta.states = Vegeta.States.DMGED;
-            }
+        //SAFE HEALTHBARS
+        if(goku.health<0){
+            goku.health = 0;
         }
 
-        if(gokuHealth<0){
-            gokuHealth = 0;
+        if(vegeta.health<0){
+            vegeta.health = 0;
         }
 
-        if(vegetaHealth<0){
-            vegetaHealth = 0;
-        }
-
+        //TIMER CONTROLLER
         timeCount += dt;
-
         if(timeCount >= 1){
             if (worldTimer > 0) {
                 worldTimer--;
@@ -340,54 +380,100 @@ public class GameScreen extends ScreenBeta {
             vegeta.setAnimation(vegeta.walk);
         }
 
-        if(touchpad.getKnobPercentX() > 0.5 && touchpad.getKnobPercentX() < 0.9) {
-            Gdx.app.log("Delta X", "Knob X is " + touchpad.getKnobPercentX());
-
-        }
-
-        if(touchpad.getKnobPercentY() > 0.5 && touchpad.getKnobPercentY() < 0.9) {
-            Gdx.app.log("Delta Y", "Knob Y is " + touchpad.getKnobPercentY());
-        }
-
-        if ((gokuHealth == 0) || (vegetaHealth == 0)){
+        if ((goku.health == 0) || (vegeta.health == 0)){
             timeUp = true;
         }
-/*
-        if (vegeta.getPosition().dst(goku.getPosition()) < vegeta.getWidth() * 10) {
-            Gdx.app.log("vegeta", "esto ocurre");
-            int random = MathUtils.random(5);
-            switch (random) {
-                case 0:
-                    vegeta.states = Vegeta.States.WALK;
-                    vegeta.moveBy(-10, -10);
 
-                case 1:
-                    vegeta.states = Vegeta.States.WALK;
-                    vegeta.moveBy(-10, 10);
-                    break;
-                case 2:
-                    vegeta.states = Vegeta.States.WALK;
-                    vegeta.moveBy(-10, 10);
-                    break;
-                case 3:
-                    vegeta.states = Vegeta.States.WALK;
-                    vegeta.moveBy(-10, -10);
-                    break;
-                case 4:
-                    vegeta.resetTime();
-                    vegeta.states = Vegeta.States.ATTACK;
+        AItimer = AItimer + dt;
 
+        if(vegeta.health != 0 && goku.health != 0) {
+            if (AItimer > 3) {
+                int random = MathUtils.random(6);
+                Gdx.app.log("random", String.valueOf(random));
+                switch (random) {
+                        case 0:
+                            vegeta.states = Vegeta.States.WALK;
+                            vegeta.moveBy(0, -10);
+                            if(vegeta.getSpeed() != 0)
+                                AItimer = 0;
 
-                    vegetaAttacks.add(new vegetaAttack());
-                    vegetaAttacks.get(vArray).setPosition(vegeta.getX()-30,vegeta.getY());
+                        break;
+                    case 1:
+                        vegeta.states = Vegeta.States.WALK;
+                        vegeta.moveBy(0, 10);
+                        if(vegeta.getSpeed() != 0)
+                            AItimer = 0;
 
-                    //Gdx.app.log("gokuAttacks", gokuAttacks.get(iArray));
-                    mainStage.addActor(vegetaAttacks.get(vArray));
-                    vArray++;
+                        break;
+                    case 2:
+                        vegeta.states = Vegeta.States.WALK;
+                        vegeta.moveBy(0, -10);
+                        if(vegeta.getSpeed() != 0)
+                            AItimer = 0;
+
+                        break;
+                    case 3:
+                        vegeta.states = Vegeta.States.WALK;
+                        vegeta.moveBy(0, -10);
+                        if(vegeta.getSpeed() != 0)
+                            AItimer = 0;
+
+                        break;
+                    case 4:
+                        if (vegeta.playOnceAttack) {
+                            vegeta.resetTime();
+                            vegeta.states = Vegeta.States.ATTACK;
+                            attack1.play();
+
+                            vegetaAttacks.add(new vegetaAttack());
+                            vegetaAttacks.get(vArray).setPosition(vegeta.getX() - 30, vegeta.getY() + 20);
+
+                            mainStage.addActor(vegetaAttacks.get(vArray));
+                            vArray++;
+                            AItimer = 0;
+                        }
+                        if(!vegeta.playOnceAttack){
+                            AItimer = 0;
+                        }
+                        break;
+                    case 5:
+                        vegeta.resetTime();
+                        vegeta.states = Vegeta.States.BLOCK;
+                        AItimer = 0;
+                        break;
+
+                    case 6:
+                        vegeta.states = Vegeta.States.WALK;
+                        vegeta.moveBy(0, 10);
+                        if(vegeta.getSpeed() != 0)
+                            AItimer = 0;
+                        break;
+
+                    default:
+                        vegeta.moveBy(-20,0);
+                        break;
+                }
             }
-        }else {
+        }
+        /*}else {
 
         }*/
+
+        //SIMPLE - RANDOM AI Follow
+        int random2 = MathUtils.random(150);
+        if(random2 >= 0 && random2 <10) {
+            if (goku.getY() > vegeta.getY()) {
+                vegeta.moveBy(0, 10);
+            }
+        }
+        else if(random2 >= 140 && random2 <150) {
+        if (goku.getY() < vegeta.getY()) {
+            vegeta.moveBy(0, -10);
+        }
+        else{
+        }
+            vegeta.moveBy(0, 0);
+        }
 
         if(isTimeUp()){
             againButton = new TextButton("AGAIN", skin.get(("default"), TextButton.TextButtonStyle.class));
@@ -397,10 +483,11 @@ public class GameScreen extends ScreenBeta {
             againButton.setScale(3);
             mainStage.addActor(againButton);
 
-            winnerLabel = new Label("LABEL", labelStyle);
+            winnerLabel = new Label("WINNER", labelStyle);
             winnerLabel.setPosition(WIDTH/2-150,20);
             winnerLabel.setScale(1);
             winnerLabel.setFontScale(2);
+
 
             if(gokuHealth > vegetaHealth){
                 winnerLabel.setText("Goku Won");
@@ -413,32 +500,47 @@ public class GameScreen extends ScreenBeta {
                 }
 
             } else if(gokuHealth < vegetaHealth){
-            winnerLabel.setText("Vegeta Won");
+                winnerLabel.setText("Vegeta Won");
 
                 goku.remove();
                 if(playOnce){
                     vegetaLost.play();
                     playOnce = false;
                 }
-            }
+            }else if(gokuHealth == vegetaHealth){
+                winnerLabel.setText("TIE");
+                vegeta.remove();
+                goku.remove();
+                goku.health = 0;
+                vegeta.health = 0;
+                }
             else{
+                goku.remove();
+                goku.health = 0;
+                vegeta.health = 0;
+                vegeta.remove();
                 winnerLabel.setText("TIE");
             }
 
-            goku.coolDownAttack =  goku.coolDownAttack -dt;
+
 
             mainStage.addActor(winnerLabel);
+
+            //remove controls
+            uiTable.remove();
+            countdownLabel.remove();
 
             againButton.addListener(new ActorGestureListener() {
                 @Override
                 public void touchDown(InputEvent event, float x, float y, int pointer, int button) {
                     super.touchDown(event, x, y, pointer, button);
 
-                        fightMusic.stop();
-                        MyGame.menuScreen.menuMusic.play();
-                        MyGame.setActiveScreen(MyGame.menuScreen);
-                        MyGame.gameScreen.dispose();
-                    }
+                    fightMusic.stop();
+
+                    MyGame.menuScreen.menuMusic.play();
+                    MyGame.setActiveScreen(MyGame.menuScreen);
+                    MyGame.gameScreen.dispose();
+                }
             });
         }
 
@@ -453,10 +555,11 @@ public class GameScreen extends ScreenBeta {
         MyGame.gameScreen = null;
 
         goku = null;
-        winnerLabel = null;
-        gokuAttacks = null;
-        gokuHealthBar = null;
         vegeta = null;
+        winnerLabel = null;
+        againButton = null;
+        gokuAttacks = null;
+        vegetaAttacks = null;
         uiStage = null;
         gokuPort = null;
         vegetaPort = null;
@@ -464,6 +567,8 @@ public class GameScreen extends ScreenBeta {
         redBarGoku = null;
         redBarVegeta = null;
         vegetaHealthBar = null;
+        gokuHealthBar = null;
+        countdownLabel = null;
 
     }
 

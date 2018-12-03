@@ -26,6 +26,7 @@ import java.util.Set;
  *  Extend the Actor class to include graphics and collision detection.
  *  Actor class stores data such as position and rotation.
  */
+
 public class ActorBeta extends Actor {
     private TextureRegion textureRegion;
     private Rectangle rectangle;
